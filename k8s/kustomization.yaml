@@ -1,0 +1,7 @@
+resources:
+  - deployment.yaml
+  - service.yaml
+images:
+  - name: ghcr.io/OWNER/REPO/demo-app
+    newName: ghcr.io/OWNER/REPO/demo-app
+    newTag: IMAGE_TAG
