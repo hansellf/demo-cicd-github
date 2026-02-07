@@ -1,0 +1,30 @@
+name: Rollback (kind)
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Commit SHA tag to deploy"
+        required: true
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: helm/kind-action@v1
+
+      - name: Set image tag via kustomize
+        run: |
+          cd k8s
+          kustomize edit set image ghcr.io/OWNER/REPO/demo-app=ghcr.io/${{ github.repository }}/demo-app:${{ inputs.image_tag }}
+
+      - name: Apply
+        run: kubectl apply -k k8s
+
+      - name: Wait for rollout
+        run: kubectl rollout status deploy/demo-app --timeout=120s
