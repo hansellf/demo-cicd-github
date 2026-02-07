@@ -19,12 +19,13 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1
 
-      - name: Set image
+      - name: Set image tag via kustomize
         run: |
-          sed -i "s|ghcr.io/OWNER/REPO/demo-app:IMAGE_TAG|ghcr.io/${{ github.repository }}/demo-app:${{ github.event.workflow_run.head_sha }}|g" k8s/deployment.yaml
+          cd k8s
+          kustomize edit set image ghcr.io/OWNER/REPO/demo-app=ghcr.io/${{ github.repository }}/demo-app:${{ github.event.workflow_run.head_sha }}
 
       - name: Apply manifests
-        run: kubectl apply -f k8s/
+        run: kubectl apply -k k8s
 
       - name: Wait for rollout
         run: kubectl rollout status deploy/demo-app --timeout=120s
@@ -34,3 +35,4 @@ jobs:
           kubectl port-forward deploy/demo-app 8080:8080 &
           sleep 3
           curl -sSf http://127.0.0.1:8080/health
+    environment: dev
